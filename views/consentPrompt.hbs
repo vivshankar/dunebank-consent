@@ -1,0 +1,87 @@
+<div>
+    <table>
+        <tbody>
+            {{#each consents}}
+            <tr>
+                <td style="min-width:30px;">
+                    <input id={{this.id}}
+                        type="checkbox" name="consentToggle" {{#if this.assentUIDefault}} checked {{else}} 
+            {{#isApprovedConsent this}} checked {{/isApprovedConsent}} {{/if}}>
+                </td>
+                <td style="text-align: left;width: 95%;"><span>{{this.message}}</span></td>
+                <td id={{concat this.id '_data'}} style="display:none;">{{json this}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+<div>
+    <button type="button" id="post-btn">Authorize</button>
+</div>
+<script type="text/javascript">
+    const button = document.getElementById('post-btn');
+    const toggles = document.getElementsByName('consentToggle');
+
+    button.addEventListener('click', async _ => {
+
+        button.disabled = true;
+        try {
+
+            var consents = [];
+            for(i = 0;i < toggles.length; i++) {
+                const recordData = document.getElementById(toggles[i].id + "_data");
+                const record = JSON.parse(recordData.innerText);
+                let consentType = null;
+                if (toggles[i].checked) {
+                    consentType = record.consentType == 3 ? 3 : 1;
+                } else {
+                    consentType = record.consentType == 3 ? 4 : 2;
+                }
+                
+                let consent = {
+                    purposeId: record.purposeId,
+                    attributeId: record.attributeId,
+                    attributeValue: record.attributeValue,
+                    accessTypeId: record.accessTypeId,
+                    state: consentType,
+                    customAttributes: record.customAttributes,
+                    applicationId: record.applicationId,
+                    subjectId: record.subjectId,
+                };
+
+                // hack
+                if (consent.attributeId == null) {
+                    delete consent.attributeId;
+                }
+
+                if (consent.accessTypeId == null) {
+                    delete consent.accessTypeId;
+                }
+                
+                consents.push(consent);
+            }
+
+            console.log(`Consents:\n${JSON.stringify(consents, null, 2)}`)
+            const response = await fetch('/payee/consents', {
+                method: 'post',
+                body: JSON.stringify({
+                    consents: consents,
+                    callbackUri: "{{callbackUri}}",
+                    tppClientId: "{{tppClientId}}",
+                }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+            });
+
+            const j = await response.json();
+            console.log("DEBUG: " + JSON.stringify(j));
+            location.href = j.callbackUri;
+        } catch(err) {
+            console.error(`Error: ${err}`);
+        }
+
+        button.disabled = false;
+    });
+</script>
