@@ -1,29 +1,31 @@
-<div>
+<div class="docs-section">
+    <h5 class="docs-header">Review and consent</h5>
+    <p>The third-party is requesting Dune to add a payee on your behalf. This requires access to the following. Please validate the request and authorize to continue.</p>
+
     <table>
         <tbody>
             {{#each consents}}
-            <tr>
-                <td style="min-width:30px;">
+            <tr class="row">
+                <td class="twelve columns">
                     <input id={{this.id}}
                         type="checkbox" name="consentToggle" {{#if this.assentUIDefault}} checked {{else}} 
-            {{#isApprovedConsent this}} checked {{/isApprovedConsent}} {{/if}}>
+            {{#isApprovedConsent this}} checked {{/isApprovedConsent}} {{/if}}>&nbsp;&nbsp;{{this.message}}
                 </td>
-                <td style="text-align: left;width: 95%;"><span>{{this.message}}</span></td>
                 <td id={{concat this.id '_data'}} style="display:none;">{{json this}}</td>
             </tr>
             {{/each}}
         </tbody>
     </table>
-</div>
-<div>
-    <button type="button" id="post-btn">Authorize</button>
+    <div>
+        <button type="button" id="post-btn" class="button-primary">Authorize</button>
+    </div>
 </div>
 <script type="text/javascript">
     const button = document.getElementById('post-btn');
     const toggles = document.getElementsByName('consentToggle');
 
     button.addEventListener('click', async _ => {
-
+        button.innerText = "Let the spice flow...";
         button.disabled = true;
         try {
 
@@ -66,7 +68,7 @@
                 method: 'post',
                 body: JSON.stringify({
                     consents: consents,
-                    callbackUri: "{{callbackUri}}",
+                    callbackUri: "{{{callbackUri}}}",
                     tppClientId: "{{tppClientId}}",
                 }),
                 headers: {
@@ -80,8 +82,7 @@
             location.href = j.callbackUri;
         } catch(err) {
             console.error(`Error: ${err}`);
+            button.disabled = false;
         }
-
-        button.disabled = false;
     });
 </script>

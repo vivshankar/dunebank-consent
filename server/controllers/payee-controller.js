@@ -106,7 +106,7 @@ class PayeeController {
             return;
         }
 
-        let callbackUri = decodeURIComponent(req.query.callbackUri);
+        let callbackUri = req.query.callbackUri;
         let customAttributes = null;
         if (req.query.custom) {
             customAttributes = JSON.parse(req.query.custom);
@@ -142,7 +142,10 @@ class PayeeController {
         debug(`[${PayeeController.name}:storeConsents]`,
             `Store consents response:\n${JSON.stringify(r, null, 2)}`);
 
-        res.send({ callbackUri: req.body.callbackUri + "?decision=" + r.status });
+        console.log(`DEBUG: ${req.body.callbackUri}`);
+        let url = new URL(req.body.callbackUri);
+        url.searchParams.append("decision", r.status);
+        res.send({ callbackUri: url.toString() });
     }
 
     _extractToken = (req) => {
