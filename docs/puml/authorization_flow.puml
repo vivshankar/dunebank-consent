@@ -1,0 +1,54 @@
+@startuml
+
+actor user as "Jessica"
+boundary ua as "Browser"
+participant tpp as "Third-party service"
+participant ca as "Dunebank consent app"
+participant idp as "Dunebank IdP (ISV)"
+
+user -> ua: Submit product details
+ua -> tpp: Submit product details
+tpp -> tpp: Do I have a token from the bank?
+tpp --> ua: Initiate azn code flow to get token
+ua -> idp: Kick off azn code
+idp --> ua: Challenge for user auth
+user -> ua: Authenticate with bank credentials
+ua -> idp: Submit credentials
+idp -> idp: Generate OIDC token
+idp --> tpp: Send OIDC token
+tpp -> ca: /payee/authorize | Authz {token}
+ca -> idp: Introspect the {token} to get client_id and other data
+ca -> idp: Perform privacy assessment
+ca -> idp: Get consent metadata
+ca -> ca: Build JWT containing consent metadata and\nTPP client_id and user ID on ISV
+ca --> tpp: status=consent&redirectUri={consentPromptURL}
+tpp --> ua: 302 {consentPromptURL}
+note over tpp
+    Add two additional query string parameters:
+    
+    1. custom: This can be any custom attributes to be added to the consent record
+    2. callbackUri: The URL to which the consent app\nshould redirect once consent has been collected
+end note
+
+ua -> ca: {consentPromptURL}
+ca --> ua: Consent page
+user -> ua: Authorize the request
+ua -> ca: Submit consents
+ca -> idp: Get privileged token
+note over ca
+    Bank consent app is granted a privileged API
+    client that is associated with the Third-party
+    service as an "Application API Client" on ISV.
+    
+    The Bank consent app maintains a mapping
+    between the Third-party app's client_id
+    and this privileged client credential.
+end note
+ca -> idp: Store consents
+ca --> ua: 302 {callbackUri} with decision
+ua -> tpp: {callbackUri}
+tpp -> ca: /payee/authorize | Authz {token}
+ca --> tpp: Approved
+tpp -> tpp: Do the biz...
+
+@enduml

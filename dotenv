@@ -1,3 +1,4 @@
 TENANT_URL=https://abc.verify.ibm.com
 CLIENT_ID=
 CLIENT_SECRET=
+TPP_MAP=
