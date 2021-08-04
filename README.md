@@ -65,3 +65,7 @@ This creates an association between the client ID used by the TPP application wi
 3. Run [Ingots Wealth Service](https://github.com/vivshankar/ingots-wealth-service).
 
 This application is used during the process of adding a wealth product in Ingots Wealth Service.
+
+## Browsing the code
+
+The project structure is described [here](/docs/browsing_code.md)
