@@ -133,6 +133,8 @@ app.use(session({
 // define routes
 app.use(express.static(__dirname + '/../public'))
 app.use('/payee', payeeRoutes);
+app.use('/domestic-payments', require('./routes/domestic-payments-route'));
+app.use('/internal', require('./routes/internal-route'));
 
 app.listen(PORT, () => {
     console.log(`Server started and listening on port ${PORT}`);
